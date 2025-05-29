@@ -51,6 +51,7 @@
 #include "ttnn/operations/experimental/gather/gather_pybind.hpp"
 #include "ttnn/operations/experimental/gather/tosa/gather_tosa_pybind.hpp"
 #include "ttnn/operations/experimental/padded_slice/padded_slice_pybind.hpp"
+#include "ttnn/operations/experimental/signal_processing/fft/fft_pybind.hpp"
 
 namespace py = pybind11;
 
@@ -123,6 +124,9 @@ void py_module(py::module& module) {
     ccl::py_module(m_experimental_ccl);
 
     broadcast_to::detail::py_bind_broadcast_to(module);
+    
+    // Signal processing operations
+    signal_processing::bind_fft_operations(module);
 }
 
 }  // namespace ttnn::operations::experimental

@@ -1,6 +1,5 @@
 .cache
 .clangd
-.devcontainer/
 .vscode
 .idea
 runtime
@@ -132,3 +131,5 @@ ttnn/ttnn/runtime
 ClangBuildAnalyzer.ini
 ttnn/ttnn/.rpath_checked__ttnn
 Testing
+
+.venv
