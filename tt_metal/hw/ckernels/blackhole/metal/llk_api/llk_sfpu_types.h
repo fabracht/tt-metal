@@ -50,6 +50,7 @@ enum SfpuType {
     asin,
     acos,
     atan,
+    asinh,
     erf,
     erfc,
     rsqrt,

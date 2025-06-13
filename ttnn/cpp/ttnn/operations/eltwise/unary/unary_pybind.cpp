@@ -1938,6 +1938,12 @@ void py_module(py::module& module) {
         R"doc(\mathrm{{output\_tensor}}_i = \verb|rad2deg|(\mathrm{{input\_tensor}}_i))doc",
         "",
         R"doc(FLOAT32, BFLOAT16, BFLOAT8_B)doc");
+    bind_unary_operation(
+        module,
+        ttnn::asinh,
+        R"doc(\mathrm{{output\_tensor}}_i = \verb|asinh|(\mathrm{{input\_tensor}}_i))doc",
+        "",
+        R"doc(BFLOAT16, FLOAT32)doc");
 
     //  Unaries with fast_and_approximate_mode
     bind_unary_operation_with_fast_and_approximate_mode(module, ttnn::exp, R"doc(BFLOAT16, BFLOAT8_B)doc");
@@ -2059,15 +2065,6 @@ void py_module(py::module& module) {
         module,
         ttnn::acosh,
         R"doc(Performs acosh function on :attr:`input_tensor`.)doc",
-        "",
-        R"doc(BFLOAT16)doc",
-        R"doc(TILE)doc",
-        R"doc(2, 3, 4)doc",
-        R"doc(System memory is not supported.)doc");
-    bind_unary_composite(
-        module,
-        ttnn::asinh,
-        R"doc(Performs asinh function on :attr:`input_tensor`.)doc",
         "",
         R"doc(BFLOAT16)doc",
         R"doc(TILE)doc",

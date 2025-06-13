@@ -782,3 +782,23 @@ def test_unary_trunc_ttnn_opt(input_shapes, device):
 
     assert_with_ulp(output_tensor, golden_tensor)
     assert_with_pcc(ttnn.to_torch(output_tensor), golden_tensor)
+
+@pytest.mark.parametrize(
+    "input_shapes",
+    (
+        (torch.Size([1, 1, 32, 32])),
+        (torch.Size([1, 1, 320, 384])),
+        (torch.Size([1, 3, 320, 384])),
+    ),
+)
+def test_unary_asinh_ttnn(input_shapes, device):
+    in_data1, input_tensor1 = data_gen_with_range(input_shapes, -100, 100, device)
+
+    output_tensor = ttnn.asinh(input_tensor1)
+    golden_function = ttnn.get_golden_function(ttnn.asinh)
+    golden_tensor = golden_function(in_data1, device=device)
+    output = ttnn.to_torch(output_tensor)
+
+    comp_pass = compare_pcc([output_tensor], [golden_tensor])
+
+    assert comp_pass
