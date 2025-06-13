@@ -109,4 +109,5 @@ enum SfpuType {
     cpy_values,
     gcd,
     lcm,
+    selu,
 };
