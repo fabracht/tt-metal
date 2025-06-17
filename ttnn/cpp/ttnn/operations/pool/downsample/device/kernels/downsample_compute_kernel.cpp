@@ -36,7 +36,7 @@ void MAIN {
     uint32_t num_output_tiles_in_row = get_compile_time_arg_val(8);
     uint32_t num_output_tiles = num_output_rows_of_tiles * num_output_tiles_in_row;
 
-    untilize_init(input_cb_index, untilize_cb_index);
+    compute_kernel_hw_startup(input_cb_index, untilize_cb_index) untilize_init(input_cb_index);
     pack_reconfig_data_format(untilize_cb_index);
 
     // print_cb_details(input_cb_index);
@@ -46,7 +46,7 @@ void MAIN {
 
     if (halo_prev_enabled) {
         // not required since cb has same data format and untilize init already configured unpacker
-        // untilize_init_short(halo_prev_input_cb_index);
+        // untilize_init(halo_prev_input_cb_index);
 
         // Untilize halo input
         for (uint32_t b = 0; b < halo_prev_input_num_rows_of_tiles; ++b) {
@@ -76,7 +76,7 @@ void MAIN {
 
     if (halo_next_enabled) {
         // not required since cb has same data format and untilize init already configured unpacker
-        // untilize_init_short(halo_next_input_cb_index);
+        // untilize_init(halo_next_input_cb_index);
 
         // Untilize halo input
         for (uint32_t b = 0; b < halo_next_input_num_rows_of_tiles; ++b) {

@@ -15,26 +15,9 @@
 namespace ckernel {
 
 /**
- * Init function for untilize operations, to be used at the beginning of the kernel.
- */
-ALWI void untilize_init(uint32_t icb, uint32_t ocb) {
-    MATH((llk_math_eltwise_unary_datacopy_init<A2D, DST_ACCUM_MODE, BroadcastType::NONE>(
-        false /*transpose of faces*/, false /*transpose within 16x16 face*/, icb)));
-    MATH((llk_math_pack_sync_init<DST_ACCUM_MODE>()));
-    MATH((llk_math_hw_configure_disaggregated(icb, icb)));
-
-    PACK((llk_pack_hw_configure_disaggregated<DST_ACCUM_MODE, false>(ocb)));
-    PACK((llk_pack_init(ocb)));
-    PACK((llk_pack_dest_init<DST_ACCUM_MODE, false>()));
-
-    UNPACK((llk_unpack_untilize_hw_configure_disaggregated<DST_ACCUM_MODE>(icb)));
-    UNPACK((llk_unpack_untilize_init(icb)));  // init must be after configure
-}
-
-/**
  * Short init function to initialize untilize op, after a full init is already performed.
  */
-ALWI void untilize_init_short(uint32_t icb) {
+ALWI void untilize_init(uint32_t icb) {
     MATH((llk_math_eltwise_unary_datacopy_init<A2D, DST_ACCUM_MODE, BroadcastType::NONE>(
         false /*transpose of faces*/, false /*transpose within 16x16 face*/, icb)));
     UNPACK((llk_unpack_untilize_init(icb)));
