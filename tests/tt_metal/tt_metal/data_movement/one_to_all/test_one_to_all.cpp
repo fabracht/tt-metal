@@ -192,7 +192,8 @@ bool run_dm(IDevice* device, const OneToAllConfig& test_config) {
 TEST_F(DeviceFixture, TensixDataMovementOneToAll2x2PacketSizes) {
     // Parameters
     uint32_t max_transactions = 256;
-    uint32_t max_transaction_size_pages = 64;
+    uint32_t max_transaction_size_pages =
+        arch_ == tt::ARCH::BLACKHOLE ? 1024 : 2048;                     // Max total transaction size == 64 KB
     uint32_t page_size_bytes = arch_ == tt::ARCH::BLACKHOLE ? 64 : 32;  // =Flit size: 32 bytes for WH, 64 for BH
     CoreCoord master_core_coord = {0, 0};
     CoreCoord grid_size = {2, 2};
@@ -229,7 +230,8 @@ TEST_F(DeviceFixture, TensixDataMovementOneToAll2x2PacketSizes) {
 TEST_F(DeviceFixture, TensixDataMovementOneToAll4x4PacketSizes) {
     // Parameters
     uint32_t max_transactions = 256;
-    uint32_t max_transaction_size_pages = 64;
+    uint32_t max_transaction_size_pages =
+        arch_ == tt::ARCH::BLACKHOLE ? 1024 : 2048;                     // Max total transaction size == 64 KB
     uint32_t page_size_bytes = arch_ == tt::ARCH::BLACKHOLE ? 64 : 32;  // =Flit size: 32 bytes for WH, 64 for BH
     CoreCoord master_core_coord = {0, 0};
     CoreCoord grid_size = {4, 4};
@@ -266,7 +268,8 @@ TEST_F(DeviceFixture, TensixDataMovementOneToAll4x4PacketSizes) {
 TEST_F(DeviceFixture, TensixDataMovementOneToAll10x10PacketSizes) {
     // Parameters
     uint32_t max_transactions = 256;
-    uint32_t max_transaction_size_pages = 64;
+    uint32_t max_transaction_size_pages =
+        arch_ == tt::ARCH::BLACKHOLE ? 1024 : 2048;                     // Max total transaction size == 64 KB
     uint32_t page_size_bytes = arch_ == tt::ARCH::BLACKHOLE ? 64 : 32;  // =Flit size: 32 bytes for WH, 64 for BH
     CoreCoord master_core_coord = {0, 0};
     bool loopback = true;
@@ -313,7 +316,8 @@ TEST_F(DeviceFixture, TensixDataMovementOneToAll10x10PacketSizes) {
 TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticast2x2PacketSizes) {
     // Parameters
     uint32_t max_transactions = 256;
-    uint32_t max_transaction_size_pages = 64;
+    uint32_t max_transaction_size_pages =
+        arch_ == tt::ARCH::BLACKHOLE ? 1024 : 2048;                     // Max total transaction size == 64 KB
     uint32_t page_size_bytes = arch_ == tt::ARCH::BLACKHOLE ? 64 : 32;  // =Flit size: 32 bytes for WH, 64 for BH
     CoreCoord master_core_coord = {0, 0};
     CoreCoord grid_size = {2, 2};
@@ -350,7 +354,8 @@ TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticast2x2PacketSizes) {
 TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticast5x5PacketSizes) {
     // Parameters
     uint32_t max_transactions = 256;
-    uint32_t max_transaction_size_pages = 64;
+    uint32_t max_transaction_size_pages =
+        arch_ == tt::ARCH::BLACKHOLE ? 1024 : 2048;                     // Max total transaction size == 64 KB
     uint32_t page_size_bytes = arch_ == tt::ARCH::BLACKHOLE ? 64 : 32;  // =Flit size: 32 bytes for WH, 64 for BH
     CoreCoord master_core_coord = {0, 0};
     CoreCoord grid_size = {5, 5};
@@ -387,7 +392,8 @@ TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticast5x5PacketSizes) {
 TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticast11x10PacketSizes) {
     // Parameters
     uint32_t max_transactions = 256;
-    uint32_t max_transaction_size_pages = 64;
+    uint32_t max_transaction_size_pages =
+        arch_ == tt::ARCH::BLACKHOLE ? 1024 : 2048;                     // Max total transaction size == 64 KB
     uint32_t page_size_bytes = arch_ == tt::ARCH::BLACKHOLE ? 64 : 32;  // =Flit size: 32 bytes for WH, 64 for BH
     CoreCoord master_core_coord = {0, 0};
     CoreCoord grid_size = {
@@ -431,7 +437,8 @@ TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticast11x10PacketSizes) {
 TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticastLinked2x2PacketSizes) {
     // Parameters
     uint32_t max_transactions = 256;
-    uint32_t max_transaction_size_pages = 64;
+    uint32_t max_transaction_size_pages =
+        arch_ == tt::ARCH::BLACKHOLE ? 1024 : 2048;                     // Max total transaction size == 64 KB
     uint32_t page_size_bytes = arch_ == tt::ARCH::BLACKHOLE ? 64 : 32;  // =Flit size: 32 bytes for WH, 64 for BH
     CoreCoord master_core_coord = {0, 0};
     CoreCoord grid_size = {2, 2};
@@ -468,7 +475,8 @@ TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticastLinked2x2PacketSizes) {
 TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticastLinked5x5PacketSizes) {
     // Parameters
     uint32_t max_transactions = 256;
-    uint32_t max_transaction_size_pages = 64;
+    uint32_t max_transaction_size_pages =
+        arch_ == tt::ARCH::BLACKHOLE ? 1024 : 2048;                     // Max total transaction size == 64 KB
     uint32_t page_size_bytes = arch_ == tt::ARCH::BLACKHOLE ? 64 : 32;  // =Flit size: 32 bytes for WH, 64 for BH
     CoreCoord master_core_coord = {0, 0};
     CoreCoord grid_size = {5, 5};
@@ -505,7 +513,8 @@ TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticastLinked5x5PacketSizes) {
 TEST_F(DeviceFixture, TensixDataMovementOneToAllMulticastLinked11x10PacketSizes) {
     // Parameters
     uint32_t max_transactions = 256;
-    uint32_t max_transaction_size_pages = 64;
+    uint32_t max_transaction_size_pages =
+        arch_ == tt::ARCH::BLACKHOLE ? 1024 : 2048;                     // Max total transaction size == 64 KB
     uint32_t page_size_bytes = arch_ == tt::ARCH::BLACKHOLE ? 64 : 32;  // =Flit size: 32 bytes for WH, 64 for BH
     CoreCoord master_core_coord = {0, 0};
     CoreCoord grid_size = {
