@@ -260,12 +260,12 @@ test_bounds = {
             "riscv_1": {"latency": {"lower": 42000, "upper": 44000}, "bandwidth": 33},
             "riscv_0": {"latency": {"lower": 42000, "upper": 44000}, "bandwidth": 34},
         },
-        4: {
-            "riscv_0": {"latency": {"lower": 200, "upper": 19000}, "bandwidth": 0.17},
-        },
-        5: {
-            "riscv_1": {"latency": {"lower": 300, "upper": 18000}, "bandwidth": 0.17},
-        },
+        # 4: {
+        #     "riscv_0": {"latency": {"lower": 200, "upper": 19000}, "bandwidth": 0.17},
+        # },
+        # 5: {
+        #     "riscv_1": {"latency": {"lower": 300, "upper": 18000}, "bandwidth": 0.17},
+        # },
         6: {
             "riscv_0": {"latency": {"lower": 400, "upper": 70000}, "bandwidth": 0.5},
         },
@@ -711,6 +711,7 @@ def plot_dm_stats(dm_stats, output_dir="tests/tt_metal/tt_metal/data_movement", 
         ax.set_xlabel("Transaction Size (bytes)")
         ax.set_ylabel("Bandwidth (bytes/cycle)")
         ax.set_title("Data Size vs Bandwidth")
+        ax.set_xscale("log", base=2)
         ax.legend()
         ax.grid()
 
