@@ -117,7 +117,7 @@ void MAIN {
         cb_push_back(cb_var, 1);
 #endif
 
-        reduce_revert_delta();
+        reduce_uninit();
 
 #ifndef RMSNORM
         /*

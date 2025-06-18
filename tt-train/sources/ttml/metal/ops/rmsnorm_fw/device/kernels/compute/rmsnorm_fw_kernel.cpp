@@ -305,7 +305,7 @@ void MAIN {
                 /* tile_idx */ 0,
                 /* tile_idx */ 0,
                 reduction_register);
-            reduce_revert_delta();
+            reduce_uninit();
 
             const uint32_t eps_register = 1U;
             reconfig_data_format_srca(cb_eps);

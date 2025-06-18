@@ -49,7 +49,7 @@ void MAIN {
 #endif
                     reduce_init(cb_input, cb_scaler, cb_accum_dst);
                     reduce_tile(cb_input, cb_scaler, 0, 0, reduce_dst_idx);
-                    reduce_revert_delta();
+                    reduce_uninit();
 
                     cb_pop_front(cb_input, onetile);
                 }
@@ -106,7 +106,7 @@ void MAIN {
 #endif
             reduce_init(cb_input, cb_scaler, cb_out);
             reduce_tile(cb_input, cb_scaler, 0, 0, reduce_dst_idx);
-            reduce_revert_delta();
+            reduce_uninit();
             tile_regs_commit();
 
             cb_reserve_back(cb_out, onetile);

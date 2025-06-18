@@ -334,7 +334,7 @@ void MAIN {
                 tile_regs_release();
                 cb_pop_front(cb_x, out_block_hw_normal);
                 cb_push_back(cb_ex_partial, 1);
-                reduce_revert_delta();
+                reduce_uninit();
 
                 cb_wait_front(cb_ex_partial, 1);
             }
@@ -357,7 +357,7 @@ void MAIN {
                 tile_regs_wait();
                 pack_tile(dst0, cb_ex_global);
                 tile_regs_release();
-                reduce_revert_delta();
+                reduce_uninit();
                 cb_push_back(cb_ex_global, 1);
                 if (num_cores_per_mcast_group > 1) {
                     cb_push_back(cb_ex, 1);
@@ -483,7 +483,7 @@ void MAIN {
                 tile_regs_release();
                 cb_push_back(cb_ex2_partial, 1);
                 cb_pop_front(cb_xmm, out_block_hw_normal);
-                reduce_revert_delta();
+                reduce_uninit();
             }
             // End Local Reduce
             // Start Global Reduce
@@ -504,7 +504,7 @@ void MAIN {
                 tile_regs_wait();
                 pack_tile(dst0, cb_ex2_global);
                 tile_regs_release();
-                reduce_revert_delta();
+                reduce_uninit();
                 cb_push_back(cb_ex2_global, 1);
                 if (num_cores_per_mcast_group > 1) {
                     cb_push_back(cb_ex2, 1);

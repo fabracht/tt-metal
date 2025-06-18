@@ -98,7 +98,7 @@ void reduce_c(uint32_t cols) {
         release_dst();
     }
 
-    reduce_revert_delta();
+    reduce_uninit();
 }
 
 void recip_block_inplace(uint32_t in_cb, uint32_t num_tiles) {

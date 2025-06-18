@@ -150,7 +150,7 @@ void MAIN {
     pack_tile(dst0, cb_ex_partial2);
     tile_regs_release();
     index_h_offset += block_w;
-    reduce_revert_delta();
+    reduce_uninit();
     cb_pop_front(cb_x2, num_tiles_per_block);
     cb_push_back(cb_ex_partial2, 1);
 
@@ -188,7 +188,7 @@ void MAIN {
             pack_tile(dst0, cb_reduction_out);
             tile_regs_release();
         }
-        reduce_revert_delta();
+        reduce_uninit();
         cb_push_back(cb_reduction_out, num_tiles_per_allgather_worker);
     }
 
@@ -224,7 +224,7 @@ void MAIN {
             tile_regs_wait();
             pack_tile(post_dst0, cb_var);
             tile_regs_release();
-            reduce_revert_delta();
+            reduce_uninit();
             cb_push_back(cb_var, 1);
 
             // 1/[sqrt(Var + eps)],

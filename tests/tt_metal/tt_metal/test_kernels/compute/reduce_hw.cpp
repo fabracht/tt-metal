@@ -41,6 +41,6 @@ void MAIN {
         cb_push_back(tt::CBIndex::c_16, onetile);
         release_dst();
     }
-    reduce_revert_delta();
+    reduce_uninit();
 }
 }  // namespace NAMESPACE

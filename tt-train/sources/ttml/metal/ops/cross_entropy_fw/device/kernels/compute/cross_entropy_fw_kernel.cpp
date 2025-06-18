@@ -172,7 +172,7 @@ void reduce_max_value() {
         /* tile_idx */ 0,
         /* tile_idx */ 0,
         reduction_register);
-    reduce_revert_delta();
+    reduce_uninit();
     tile_regs_commit();
 
     tile_regs_wait();
@@ -323,7 +323,7 @@ void reduce_log_sum_exp_x() {
         /* tile_idx */ 0,
         /* tile_idx */ 0,
         /* reduction_register */ reduction_register);
-    reduce_revert_delta();
+    reduce_uninit();
 
     // log(sum(exp(x - max(x))))
     log_tile_init();

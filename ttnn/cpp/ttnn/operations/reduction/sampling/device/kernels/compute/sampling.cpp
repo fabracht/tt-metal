@@ -183,7 +183,7 @@ void reduce_c() {
         release_dst();
     }
 
-    reduce_revert_delta();
+    reduce_uninit();
     UNPACK(tensix_sync());  // Workaround for issue #9370
 }
 

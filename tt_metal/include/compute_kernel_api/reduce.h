@@ -51,7 +51,7 @@ ALWI void reduce_init(uint32_t icb, uint32_t icb_scaler, uint32_t ocb) {
 
 // clang-format off
 /**
- * Reverts the packer edge mask configuration to its default state by clearing any previously set masks. Needs to be called after
+ * Resets the packer edge mask configuration to its default state by clearing any previously set masks. Needs to be called after
  * reduce_tile if the next operation requires default packer state. In case that the next operation is reduce operation across the
  * same dimension, this call can be omitted. If this function is not called, the packer will continue to use the edge masks set
  * by the latest reduce_init call, which may lead to incorrect packing behavior in subsequent operations.
@@ -63,7 +63,7 @@ ALWI void reduce_init(uint32_t icb, uint32_t icb_scaler, uint32_t ocb) {
  * | Function   | —    | No parameters                                    |  —   |      —      |    —     |
  */
 // clang-format on
-ALWI void reduce_revert_delta() { PACK((llk_pack_reduce_mask_clear())); }
+ALWI void reduce_uninit() { PACK((llk_pack_reduce_mask_clear())); }
 
 // clang-format off
 /**
@@ -80,7 +80,7 @@ ALWI void reduce_revert_delta() { PACK((llk_pack_reduce_mask_clear())); }
  * The templates take `reduce_type` which can be `ReduceFunc::Sum`, `ReduceFunc::Avg`, or `ReduceFunc::Max` and `reduce_dim` which can be `Reduce::R`, `Reduce::C`, or
  * `Reduce::RC`. They can also be specified by defines REDUCE_OP and REDUCE_DIM.
  *
- * NOTE: Before the next operation is initialized, the `reduce_revert_delta` function must be called to reset the packer state to default.
+ * NOTE: Before the next operation is initialized, the `reduce_uninit` function must be called to reset the packer state to default.
  * NOTE: For SUM and AVG operations, the value in `icb1` is a scaling factor of the final sum of values across rows/columns/both, so there is no real constraint in terms
  * of it's value. For MAX operation, maximum value will be obtained as expected, but it will be scaled by the values in `icb1`. In any case, it is recommended to use the
  * above-mentioned scaling factors to ensure that operations function as intended. Refer to ISA documentation for more details.

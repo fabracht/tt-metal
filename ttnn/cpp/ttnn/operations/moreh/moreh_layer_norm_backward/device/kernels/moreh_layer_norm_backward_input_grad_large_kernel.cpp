@@ -310,7 +310,7 @@ void MAIN {
 
         reduce_init_delta_with_dt(cb_dysum, cb_dyadd, cb_scaler);
         reduce_tile(cb_dyadd, cb_scaler, 0, 0, dst0);
-        reduce_revert_delta();
+        reduce_uninit();
         tile_regs_commit();
 
         tile_regs_wait();
@@ -328,7 +328,7 @@ void MAIN {
 
         reduce_init_delta_with_dt(cb_ydysum, cb_ydyadd, cb_scaler);
         reduce_tile(cb_ydyadd, cb_scaler, 0, 0, dst0);
-        reduce_revert_delta();
+        reduce_uninit();
         tile_regs_commit();
 
         tile_regs_wait();
