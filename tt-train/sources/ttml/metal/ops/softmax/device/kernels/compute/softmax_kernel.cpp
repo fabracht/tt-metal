@@ -181,7 +181,7 @@ void reduce_max_value() {
         /* tile_idx */ 0,
         /* tile_idx */ 0,
         reduction_register);
-    reduce_revert_delta<ReduceDim::REDUCE_ROW>(cb_max_value_after_reduction);
+    reduce_revert_delta();
     tile_regs_commit();
 
     tile_regs_wait();
@@ -349,7 +349,7 @@ void reduce_sum_exp_x() {
     //     /* tile_idx */ 0,
     //     /* tile_idx */ 0,
     //     /* reduction_register */ reduction_register);
-    // reduce_revert_delta<ReduceDim::REDUCE_ROW>(cb_exp_sum_after_reduction);
+    // reduce_revert_delta();
 
     // We used matmul_tiles instead of reduce_tile, because reduce_tile causes a loss of precision. The same issue has
     // been observed in moreh’s ops.
