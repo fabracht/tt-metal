@@ -150,6 +150,37 @@ FORCE_INLINE void recordFabricNocEvent(
     kernel_profiler::flush_to_dram_if_full<kernel_profiler::DoingDispatch::DISPATCH>();
     kernel_profiler::timeStampedData<12345, kernel_profiler::DoingDispatch::DISPATCH>(event_routing_fields.asU64());
 }
+
+FORCE_INLINE void recordFabricNocEventMulticast(
+    KernelProfilerNocEventMetadata::NocEventType noc_event_type,
+    KernelProfilerNocEventMetadata::FabricPacketType packet_type,
+    uint8_t noc_x_start,
+    uint8_t noc_y_start,
+    uint8_t mcast_rect_size_x,
+    uint8_t mcast_rect_size_y,
+    uint32_t routing_fields) {
+    // first profiler packet stores XY address data as well as packet type tag (used to decode routing fields)
+    KernelProfilerNocEventMetadata ev_md;
+    ev_md.noc_xfer_type = noc_event_type;
+
+    auto& fabric_noc_event = ev_md.data.fabric_event;
+    fabric_noc_event.dst_x = noc_x_start;
+    fabric_noc_event.dst_y = noc_y_start;
+    fabric_noc_event.mcast_end_dst_x = noc_x_start + mcast_rect_size_x - 1;
+    fabric_noc_event.mcast_end_dst_y = noc_y_start + mcast_rect_size_y - 1;
+    fabric_noc_event.routing_fields_type = packet_type;
+
+    kernel_profiler::flush_to_dram_if_full<kernel_profiler::DoingDispatch::DISPATCH>();
+    kernel_profiler::timeStampedData<12345, kernel_profiler::DoingDispatch::DISPATCH>(ev_md.asU64());
+
+    // following profiler event just stores the routing fields value
+    KernelProfilerNocEventMetadata event_routing_fields;
+    event_routing_fields.noc_xfer_type = KernelProfilerNocEventMetadata::NocEventType::FABRIC_ROUTING_FIELDS;
+    event_routing_fields.data.fabric_routing_fields.routing_fields_value = routing_fields;
+
+    kernel_profiler::flush_to_dram_if_full<kernel_profiler::DoingDispatch::DISPATCH>();
+    kernel_profiler::timeStampedData<12345, kernel_profiler::DoingDispatch::DISPATCH>(event_routing_fields.asU64());
+}
 }  // namespace noc_event_profiler
 
 #define RECORD_NOC_EVENT_WITH_ADDR(event_type, noc_addr, num_bytes, vc)                                             \
