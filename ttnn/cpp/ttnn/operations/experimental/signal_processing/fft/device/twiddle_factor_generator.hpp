@@ -7,7 +7,6 @@
 #include <vector>
 #include <cmath>
 #include <complex>
-#include "ttnn/tensor/types.hpp"
 #include "ttnn/tensor/tensor.hpp"
 
 namespace ttnn {
@@ -18,8 +17,8 @@ namespace detail {
 
 // Structure to hold twiddle factors organized for efficient access
 struct TwiddleFactorTensors {
-    Tensor cos_factors;  // Real parts (cosine)
-    Tensor sin_factors;  // Imaginary parts (sine)
+    tt::tt_metal::Tensor cos_factors;  // Real parts (cosine)
+    tt::tt_metal::Tensor sin_factors;  // Imaginary parts (sine)
 };
 
 // Generate twiddle factors for FFT and organize them into tiles
@@ -27,9 +26,9 @@ struct TwiddleFactorTensors {
 inline TwiddleFactorTensors generate_twiddle_factor_tensors(
     uint32_t fft_size,
     bool inverse,
-    Device* device,
-    DataType dtype = DataType::BFLOAT16,
-    const MemoryConfig& memory_config = MemoryConfig{}) {
+    tt::tt_metal::IDevice* device,
+    tt::tt_metal::DataType dtype = tt::tt_metal::DataType::BFLOAT16,
+    const tt::tt_metal::MemoryConfig& memory_config = tt::tt_metal::MemoryConfig{}) {
     
     // Calculate total number of unique twiddle factors needed
     // For each stage s (1 to log2(N)), we need 2^(s-1) twiddle factors
@@ -68,26 +67,16 @@ inline TwiddleFactorTensors generate_twiddle_factor_tensors(
     
     // Create shape for twiddle factor tensors
     uint32_t num_tiles = (cos_values.size() + TILE_SIZE - 1) / TILE_SIZE;
-    Shape twiddle_shape({1, 1, num_tiles * 32, 32});
+    tt::tt_metal::Shape twiddle_shape({1, 1, num_tiles * 32, 32});
     
     // Create tensors from host data with the specified data type
-    auto cos_tensor = ttnn::from_vector(
-        cos_values,
-        twiddle_shape,
-        dtype,
-        Layout::TILE,
-        device,
-        memory_config
-    );
+    tt::tt_metal::TensorSpec cos_spec(twiddle_shape, tt::tt_metal::TensorLayout(dtype, tt::tt_metal::PageConfig(tt::tt_metal::Layout::TILE), memory_config));
+    auto cos_tensor = tt::tt_metal::Tensor::from_vector(cos_values, cos_spec);
+    cos_tensor = cos_tensor.to_device(device, memory_config);
     
-    auto sin_tensor = ttnn::from_vector(
-        sin_values,
-        twiddle_shape,
-        dtype,
-        Layout::TILE,
-        device,
-        memory_config
-    );
+    tt::tt_metal::TensorSpec sin_spec(twiddle_shape, tt::tt_metal::TensorLayout(dtype, tt::tt_metal::PageConfig(tt::tt_metal::Layout::TILE), memory_config));
+    auto sin_tensor = tt::tt_metal::Tensor::from_vector(sin_values, sin_spec);
+    sin_tensor = sin_tensor.to_device(device, memory_config);
     
     return {cos_tensor, sin_tensor};
 }
@@ -95,9 +84,9 @@ inline TwiddleFactorTensors generate_twiddle_factor_tensors(
 // Generate twiddle factors specifically for 32-point FFT (single tile)
 inline TwiddleFactorTensors generate_32point_twiddle_factors(
     bool inverse,
-    Device* device,
-    DataType dtype = DataType::BFLOAT16,
-    const MemoryConfig& memory_config = MemoryConfig{}) {
+    tt::tt_metal::IDevice* device,
+    tt::tt_metal::DataType dtype = tt::tt_metal::DataType::BFLOAT16,
+    const tt::tt_metal::MemoryConfig& memory_config = tt::tt_metal::MemoryConfig{}) {
     
     constexpr uint32_t N = 32;
     constexpr uint32_t TILE_SIZE = 32 * 32;
@@ -124,25 +113,15 @@ inline TwiddleFactorTensors generate_32point_twiddle_factors(
         }
     }
     
-    Shape twiddle_shape({1, 1, 32, 32});
+    tt::tt_metal::Shape twiddle_shape({1, 1, 32, 32});
     
-    auto cos_tensor = ttnn::from_vector(
-        cos_values,
-        twiddle_shape,
-        dtype,
-        Layout::TILE,
-        device,
-        memory_config
-    );
+    tt::tt_metal::TensorSpec cos_spec(twiddle_shape, tt::tt_metal::TensorLayout(dtype, tt::tt_metal::PageConfig(tt::tt_metal::Layout::TILE), memory_config));
+    auto cos_tensor = tt::tt_metal::Tensor::from_vector(cos_values, cos_spec);
+    cos_tensor = cos_tensor.to_device(device, memory_config);
     
-    auto sin_tensor = ttnn::from_vector(
-        sin_values,
-        twiddle_shape,
-        dtype,
-        Layout::TILE,
-        device,
-        memory_config
-    );
+    tt::tt_metal::TensorSpec sin_spec(twiddle_shape, tt::tt_metal::TensorLayout(dtype, tt::tt_metal::PageConfig(tt::tt_metal::Layout::TILE), memory_config));
+    auto sin_tensor = tt::tt_metal::Tensor::from_vector(sin_values, sin_spec);
+    sin_tensor = sin_tensor.to_device(device, memory_config);
     
     return {cos_tensor, sin_tensor};
 }
