@@ -118,13 +118,14 @@ jobs:
         platform: [
           "N300",
           "N300-llmbox",
+          "P150b",
         ]
     uses: ./.github/workflows/smoke.yaml
     with:
       docker-image: ${{ needs.build-tsan.outputs.dev-docker-image }}
       package-artifact-name: ${{ needs.build-tsan.outputs.packages-artifact-name }}
       runner: ${{ matrix.platform }}
-      per-test-timeout: 10 # TSan can be slow; relax the timeout somewhat
+      per-test-timeout: 30 # TSan can be slow; relax the timeout
       product: tt-metalium
 
   ttnn-smoke-tests:
@@ -140,6 +141,7 @@ jobs:
         platform: [
           "N300",
           "N300-llmbox",
+          "P150b",
         ]
     uses: ./.github/workflows/smoke.yaml
     with:
@@ -177,6 +179,7 @@ jobs:
       matrix:
         platform: [
           "N150",
+          "P150b",
         ]
     uses: ./.github/workflows/basic.yaml
     with:
