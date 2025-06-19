@@ -24,13 +24,13 @@
         "cmake.buildDirectory": "${workspaceFolder}/build",
         "python.pythonPath": "${workspaceFolder}/.venv/bin/python",
         "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+        "python.terminal.activateEnvironment": true,
         "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   },
   "remoteEnv": {
     "TT_METAL_HOME": "/workspace",
-    "ARCH_NAME": "wormhole_b0",
-    "PATH": "/workspace/.venv/bin:/home/dev/.local/bin:${containerEnv:PATH}"
+    "ARCH_NAME": "wormhole_b0"
   }
 }
