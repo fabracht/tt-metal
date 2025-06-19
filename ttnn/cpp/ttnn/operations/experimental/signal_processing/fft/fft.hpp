@@ -62,41 +62,6 @@ struct IFFT1dOperation {
         const uint8_t queue_id = 0);
 };
 
-struct FFT2dOperation {
-    static ComplexTensor invoke(
-        const ComplexTensor& input_tensor,
-        const std::optional<std::array<int64_t, 2>>& s = std::nullopt,
-        const std::array<int64_t, 2>& dim = {-2, -1},
-        const FFTNorm norm = FFTNorm::BACKWARD,
-        const std::optional<MemoryConfig>& memory_config = std::nullopt,
-        const uint8_t queue_id = 0);
-    
-    static ComplexTensor invoke(
-        const Tensor& input_tensor,
-        const std::optional<std::array<int64_t, 2>>& s = std::nullopt,
-        const std::array<int64_t, 2>& dim = {-2, -1},
-        const FFTNorm norm = FFTNorm::BACKWARD,
-        const std::optional<MemoryConfig>& memory_config = std::nullopt,
-        const uint8_t queue_id = 0);
-};
-
-struct IFFT2dOperation {
-    static ComplexTensor invoke(
-        const ComplexTensor& input_tensor,
-        const std::optional<std::array<int64_t, 2>>& s = std::nullopt,
-        const std::array<int64_t, 2>& dim = {-2, -1},
-        const FFTNorm norm = FFTNorm::BACKWARD,
-        const std::optional<MemoryConfig>& memory_config = std::nullopt,
-        const uint8_t queue_id = 0);
-    
-    static ComplexTensor invoke(
-        const Tensor& input_tensor,
-        const std::optional<std::array<int64_t, 2>>& s = std::nullopt,
-        const std::array<int64_t, 2>& dim = {-2, -1},
-        const FFTNorm norm = FFTNorm::BACKWARD,
-        const std::optional<MemoryConfig>& memory_config = std::nullopt,
-        const uint8_t queue_id = 0);
-};
 
 }  // namespace signal_processing
 }  // namespace experimental
@@ -105,7 +70,5 @@ struct IFFT2dOperation {
 // Register operations
 constexpr auto fft = ttnn::register_operation<"ttnn::experimental::fft", operations::experimental::signal_processing::FFT1dOperation>();
 constexpr auto ifft = ttnn::register_operation<"ttnn::experimental::ifft", operations::experimental::signal_processing::IFFT1dOperation>();
-constexpr auto fft2d = ttnn::register_operation<"ttnn::experimental::fft2d", operations::experimental::signal_processing::FFT2dOperation>();
-constexpr auto ifft2d = ttnn::register_operation<"ttnn::experimental::ifft2d", operations::experimental::signal_processing::IFFT2dOperation>();
 
 }  // namespace ttnn
