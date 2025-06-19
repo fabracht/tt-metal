@@ -98,9 +98,7 @@ class YOLOv10PerformantRunner:
 
     def run(self, torch_input_tensor, check_pcc=False):
         n, h, w, c = torch_input_tensor.shape
-        torch_input_tensor = torch_input_tensor.reshape(1, 1, h * w * n, c)
-        tt_inputs_host = ttnn.from_torch(torch_input_tensor, dtype=ttnn.bfloat8_b, layout=ttnn.TILE_LAYOUT)
-        tt_inputs_host = ttnn.pad(tt_inputs_host, [1, 1, n * h * w, 32], [0, 0, 0, 0], 0)
+        tt_inputs_host, _ = self.runner_infra._setup_l1_sharded_input(self.device, torch_input_tensor)
 
         output = self._execute_yolov10_trace_2cqs_inference(tt_inputs_host)
 
