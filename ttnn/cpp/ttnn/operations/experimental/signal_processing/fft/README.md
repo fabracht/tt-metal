@@ -2,15 +2,25 @@
 
 Fast Fourier Transform operations for TensorTorrent hardware.
 
-## Features
+## Features (Current Implementation)
 
-- 1D and 2D FFT/IFFT operations
-- BF16 and FP32 data types
-- Complex tensor support
-- Normalization modes: backward (default), ortho, forward
-- Cooley-Tukey radix-2 algorithm
-- Twiddle factor generation
-- Multi-core capable architecture
+- **1D FFT/IFFT operations only** (as per requirements)
+- **BF16 and FP32 data types** support
+- **Complex tensor support** with automatic real-to-complex conversion
+- **Normalization modes**: backward (default), ortho, forward
+- **Device operation architecture** complete
+- **Python bindings** implemented
+- **Build system integration** working
+
+## Implementation Status
+
+✅ **Architecture Complete**: Full device operation framework implemented
+✅ **API Complete**: 1D FFT/IFFT operations with proper registration
+✅ **Build System**: CMake integration and compilation working
+✅ **Python Bindings**: Complete pybind11 integration
+⚠️ **Compute Kernels**: Placeholder only (copy input→output, no FFT math)
+❌ **Testing**: Blocked by environment issues
+❌ **Multi-core**: Single-core only (multi-core disabled)
 
 ## Structure
 
@@ -43,10 +53,7 @@ y_complex = ttnn.experimental.fft(x_ttnn, dim=-1)
 y_real = ttnn.to_torch(y_complex.real())
 y_imag = ttnn.to_torch(y_complex.imag())
 
-# 2D FFT
-x_2d = torch.randn(1, 1, 64, 64)
-x_2d_ttnn = ttnn.from_torch(x_2d, device=device, layout=ttnn.TILE_LAYOUT)
-y_2d_complex = ttnn.experimental.fft2d(x_2d_ttnn)
+# Note: 2D FFT not implemented (not in requirements)
 
 # Inverse FFT
 x_complex = ttnn.complex_tensor(real_ttnn, imag_ttnn)
@@ -55,24 +62,35 @@ x_reconstructed = ttnn.experimental.ifft(y_complex)
 
 ## Algorithm Details
 
-The implementation will use the Cooley-Tukey FFT algorithm:
+**Current Status**: Infrastructure ready, algorithm implementation pending
 
-1. **Decimation in Time (DIT)**: Split the DFT into even and odd indices
-2. **Butterfly Operations**: Combine results using twiddle factors
-3. **Bit-Reversal**: Reorder the output to get the correct frequency ordering
+The design supports the Cooley-Tukey FFT algorithm:
 
-For hardware efficiency:
-- Twiddle factors are precomputed and stored
-- Complex operations are optimized for the tile-based architecture
-- Multi-core distribution based on FFT size and available resources
+1. **Device Operation Framework**: Complete implementation following TTNN patterns
+2. **Memory Management**: Circular buffer configuration for input/output/work buffers
+3. **Twiddle Factor Generation**: Algorithm implemented but not yet integrated
+4. **Single-Core Path**: Working (placeholder kernels copy data)
+5. **Multi-Core Path**: Disabled pending implementation
 
-## Performance Considerations
+**Next Steps for Algorithm**:
+- Implement actual FFT butterfly operations in compute kernels
+- Add bit-reversal permutation
+- Integrate twiddle factor computation
+- Enable multi-core support for large FFTs
 
-- **Memory Layout**: Uses tiled layout for efficient matrix operations
-- **Precision**: Supports both BF16 and FP32
-- **Parallelization**: 
-  - Small FFTs (≤512 points): Single core
-  - Large FFTs: Multi-core with data distribution
+## Current Limitations
+
+- **Compute Kernels**: Only placeholder implementation (no actual FFT computation)
+- **Multi-Core**: Disabled (single-core threshold set to SIZE_MAX)
+- **Testing**: Environment issues prevent test execution
+- **Hardware**: Requires actual TT hardware for full validation
+
+## Architecture Highlights
+
+- **Modern TTNN Pattern**: Uses latest device operation structure (no base class inheritance)
+- **Proper Memory Management**: CircularBufferConfig with correct API usage
+- **Python Integration**: Complete bindings with operation registration
+- **Build Integration**: CMake targets and proper linking
 
 ## References
 
