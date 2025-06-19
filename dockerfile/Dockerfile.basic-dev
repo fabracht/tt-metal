@@ -1,4 +1,4 @@
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION=24.04
 FROM public.ecr.aws/ubuntu/ubuntu:${UBUNTU_VERSION} AS base
 # Re-declare ARG make it available in the build stage
 ARG UBUNTU_VERSION
@@ -15,17 +15,68 @@ RUN apt-get update && apt-get install -y \
     cmake \
     ninja-build \
     g++-12 \
+    clang-17 \
     build-essential \
+    git \
+    python3 \
+    python3-pip \
+    python3-venv \
+    curl \
+    wget \
+    vim \
+    sudo \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    ccache \
+    gdb \
+    pkg-config \
+    libfftw3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install mpi-ulfm from the tenstorrent repository
+# Install MPI dependencies (fallback to system OpenMPI for arm64)
 RUN set -eux; \
     apt-get update && \
-    apt-get install -y -f \
-        wget ca-certificates && \
-    TMP_DIR="$(mktemp -d)" && \
-    DEB_URL="https://github.com/tenstorrent/ompi/releases/download/v5.0.7/openmpi-ulfm_5.0.7-1_amd64.deb" && \
-    wget -qO "$TMP_DIR/ompi.deb" "$DEB_URL" && \
-    apt-get install -f -y "$TMP_DIR/ompi.deb" && \
-    rm -rf "$TMP_DIR" && \
+    ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "amd64" ]; then \
+        apt-get install -y -f wget ca-certificates && \
+        TMP_DIR="$(mktemp -d)" && \
+        DEB_URL="https://github.com/dmakoviichuk-tt/mpi-ulfm/releases/download/v5.0.7-ulfm/openmpi-ulfm_5.0.7-1_amd64.deb" && \
+        wget -qO "$TMP_DIR/ompi.deb" "$DEB_URL" && \
+        apt-get install -f -y "$TMP_DIR/ompi.deb" && \
+        rm -rf "$TMP_DIR"; \
+    else \
+        apt-get install -y libopenmpi-dev openmpi-bin; \
+    fi && \
     rm -rf /var/lib/apt/lists/*
+
+# Create dev user with sudo privileges
+RUN if ! id -u dev >/dev/null 2>&1; then \
+        if ! getent group 1000 >/dev/null 2>&1; then \
+            groupadd --gid 1000 dev; \
+        else \
+            groupadd dev; \
+        fi && \
+        if ! getent passwd 1000 >/dev/null 2>&1; then \
+            useradd --uid 1000 --gid dev --shell /bin/bash --create-home dev; \
+        else \
+            useradd --gid dev --shell /bin/bash --create-home dev; \
+        fi; \
+    fi \
+    && echo 'dev ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/50-dev \
+    && echo 'Defaults    env_keep += "DEBIAN_FRONTEND"' >> /etc/sudoers.d/env_keep
+
+# Set up environment for dev user
+USER dev
+WORKDIR /home/dev
+
+# Set up Python and git for dev user
+RUN python3 -m pip install --user --upgrade pip setuptools wheel --break-system-packages
+
+# Fix git ownership issues for the dev user
+RUN git config --global --add safe.directory '*'
+
+# Set environment variables
+ENV PATH="/home/dev/.local/bin:${PATH}"
+ENV TT_METAL_HOME="/workspace"
+ENV ARCH_NAME="wormhole_b0"
