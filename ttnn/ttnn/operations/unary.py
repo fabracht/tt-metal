@@ -198,7 +198,7 @@ def _golden_function_acos(input_tensor_a, *args, device, **kwargs):
 ttnn.attach_golden_function(ttnn.acos, golden_function=_golden_function_acos)
 
 
-def _golden_function_acosh(input_tensor_a, *args, device, **kwargs):
+def _golden_function_acosh(input_tensor_a, *args, **kwargs):
     import torch
 
     result = torch.acosh(input_tensor_a)
