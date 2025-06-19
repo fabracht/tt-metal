@@ -17,6 +17,7 @@ target_link_libraries(
     PRIVATE
         TT::Metalium
         TT::NN::Core
+        pybind11::module
 )
 
 install(TARGETS ttnn_op_experimental_signal_processing LIBRARY COMPONENT tar)
