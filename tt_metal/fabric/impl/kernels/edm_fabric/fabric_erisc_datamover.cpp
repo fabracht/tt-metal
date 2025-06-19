@@ -1418,6 +1418,71 @@ void populate_local_sender_channel_free_slots_stream_id_ordered_map(
     }
 }
 
+namespace handshake {
+
+/* EDM Handshaking Mechanism:
+ * 1. Both sides set their local_value register to 0.
+ * 2. Both sides write a magic value to their scratch register.
+ * 3. Handshake master repeatedly copies the magic value from the
+ * scratch register to the local_value of the remote subordinate,
+ * until it sees the magic value in its local_value register.
+ * 4. Handshake subordiante polls its local_value register
+ * until it sees the magic value written by the master. It then
+ * copies the magic value from its scratch register to the master's
+ * local_value register, completing the handshake.
+ */
+
+static constexpr uint32_t MAGIC_HANDSHAKE_VALUE = 0xAA;
+
+// Data-Structure used for EDM to EDM Handshaking.
+struct handshake_info_t {
+    uint32_t local_value;  // Updated by remote
+    uint32_t padding[3];   // Ensures 16B alignment for scratch register
+    uint32_t scratch[4];   // TODO: This can be removed if we use a stream register for handshaking.
+};
+
+FORCE_INLINE volatile tt_l1_ptr handshake_info_t* init_handshake_info() {
+    volatile tt_l1_ptr handshake_info_t* handshake_info =
+        reinterpret_cast<volatile tt_l1_ptr handshake_info_t*>(handshake_addr);
+    handshake_info->local_value = 0;
+    handshake_info->scratch[0] = MAGIC_HANDSHAKE_VALUE;
+    return handshake_info;
+}
+
+FORCE_INLINE void sender_side_handshake() {
+    volatile tt_l1_ptr handshake_info_t* handshake_info = init_handshake_info();
+    uint32_t local_val_addr = ((uint32_t)(&handshake_info->local_value)) / 16;
+    uint32_t scratch_addr = ((uint32_t)(&handshake_info->scratch)) / 16;
+    uint32_t count = 0;
+    while (handshake_info->local_value != MAGIC_HANDSHAKE_VALUE) {
+        if (count == DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT) {
+            count = 0;
+            run_routing();
+        } else {
+            count++;
+            internal_::eth_send_packet(0, scratch_addr, local_val_addr, 1);
+        }
+    }
+}
+
+FORCE_INLINE void receiver_side_handshake() {
+    volatile tt_l1_ptr handshake_info_t* handshake_info = init_handshake_info();
+    uint32_t local_val_addr = ((uint32_t)(&handshake_info->local_value)) / 16;
+    uint32_t scratch_addr = ((uint32_t)(&handshake_info->scratch)) / 16;
+    uint32_t count = 0;
+    while (handshake_info->local_value != MAGIC_HANDSHAKE_VALUE) {
+        if (count == DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT) {
+            count = 0;
+            run_routing();
+        } else {
+            count++;
+        }
+    }
+    internal_::eth_send_packet(0, scratch_addr, local_val_addr, 1);
+}
+
+}  // namespace handshake
+
 void kernel_main() {
     eth_txq_reg_write(sender_txq_id, ETH_TXQ_DATA_PACKET_ACCEPT_AHEAD, DEFAULT_NUM_ETH_TXQ_DATA_PACKET_ACCEPT_AHEAD);
     if constexpr (receiver_txq_id != sender_txq_id) {
@@ -1427,8 +1492,6 @@ void kernel_main() {
     //
     // COMMON CT ARGS (not specific to sender or receiver)
     //
-    // *reinterpret_cast<volatile uint32_t*>(handshake_addr) = 0;
-    auto eth_transaction_ack_word_addr = handshake_addr + sizeof(eth_channel_sync_t);
 
     // Initialize stream register state for credit management across the Ethernet link.
     // We make sure to do this before we handshake to guarantee that the registers are
@@ -1468,33 +1531,10 @@ void kernel_main() {
         init_ptr_val<to_sender_packets_completed_streams[4]>(0);
     }
 
-    volatile tt_l1_ptr erisc::datamover::handshake::handshake_state* handshake_struct =
-        reinterpret_cast<volatile tt_l1_ptr erisc::datamover::handshake::handshake_state*>(handshake_addr);
-    handshake_struct->scratch[0] = 0xAA;
-    handshake_struct->local_sync = 0;
-    uint32_t handshake_address = ((uint32_t)(&handshake_struct->local_sync)) / 16;
-    uint32_t scratch_addr = ((uint32_t)(&handshake_struct->scratch)) / 16;
-    uint32_t count = 0;
     if constexpr (is_handshake_sender) {
-        while (handshake_struct->local_sync != 0xAA) {
-            if (count == DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT) {
-                count = 0;
-                run_routing();
-            } else {
-                count++;
-                internal_::eth_send_packet(0, scratch_addr, handshake_address, 1);
-            }
-        }
+        handshake::sender_side_handshake();
     } else {
-        while (handshake_struct->local_sync != 0xAA) {
-            if (count == DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT) {
-                count = 0;
-                run_routing();
-            } else {
-                count++;
-            }
-        }
-        internal_::eth_send_packet(0, scratch_addr, handshake_address, 1);
+        handshake::receiver_side_handshake();
     }
 
     // TODO: CONVERT TO SEMAPHORE
@@ -1898,7 +1938,6 @@ void kernel_main() {
         local_receiver_buffer_addresses.data(),
         channel_buffer_size,
         sizeof(PACKET_HEADER_TYPE),
-        eth_transaction_ack_word_addr,
         receiver_channel_base_id);
 
     // initialize the remote receiver channel buffers
@@ -1906,16 +1945,11 @@ void kernel_main() {
         remote_receiver_buffer_addresses.data(),
         channel_buffer_size,
         sizeof(PACKET_HEADER_TYPE),
-        eth_transaction_ack_word_addr,
         receiver_channel_base_id);
 
     // initialize the local sender channel worker interfaces
     local_sender_channels.init(
-        local_sender_buffer_addresses.data(),
-        channel_buffer_size,
-        sizeof(PACKET_HEADER_TYPE),
-        0,  // For sender channels there is no eth_transaction_ack_word_addr because they don't send acks
-        sender_channel_base_id);
+        local_sender_buffer_addresses.data(), channel_buffer_size, sizeof(PACKET_HEADER_TYPE), sender_channel_base_id);
 
     // initialize the local sender channel worker interfaces
     init_local_sender_channel_worker_interfaces(
