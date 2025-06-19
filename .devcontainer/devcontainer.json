@@ -1,0 +1,36 @@
+{
+  "name": "TT-Metal Development",
+  "build": {
+    "dockerfile": "../dockerfile/Dockerfile.basic-dev",
+    "args": {
+      "UBUNTU_VERSION": "24.04"
+    }
+  },
+  "workspaceFolder": "/workspace",
+  "remoteUser": "dev",
+  "runArgs": ["--platform=linux/amd64"],
+  "mounts": ["source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"],
+  "postCreateCommand": "cd /workspace && python3 -m venv .venv && source .venv/bin/activate && pip install --upgrade pip && pip install -r requirements-dev.txt && pip install -e .",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-python.python",
+        "ms-vscode.cmake-tools",
+        "ms-python.pylint",
+        "ms-python.black-formatter"
+      ],
+      "settings": {
+        "cmake.buildDirectory": "${workspaceFolder}/build",
+        "python.pythonPath": "${workspaceFolder}/.venv/bin/python",
+        "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "remoteEnv": {
+    "TT_METAL_HOME": "/workspace",
+    "ARCH_NAME": "wormhole_b0",
+    "PATH": "/workspace/.venv/bin:/home/dev/.local/bin:${containerEnv:PATH}"
+  }
+}
