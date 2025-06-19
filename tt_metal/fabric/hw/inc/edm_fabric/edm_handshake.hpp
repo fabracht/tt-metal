@@ -61,30 +61,58 @@ FORCE_INLINE void initialize_edm_common_datastructures(std::uint32_t handshake_r
     *(volatile tt_l1_ptr uint32_t*)handshake_register_address = 0;
 }
 
+struct handshake_state {
+    uint32_t local_sync;
+    uint32_t padding[3];
+    uint32_t scratch[4];
+};
+
 /*
  * As the designated master EDM core, initiate a handshake by sending a packet to reserved
  * memory region.
  */
 FORCE_INLINE void sender_side_start(
-    std::uint32_t handshake_register_address, size_t HS_CONTEXT_SWITCH_TIMEOUT = A_LONG_TIMEOUT_BEFORE_CONTEXT_SWITCH) {
-    initialize_edm_common_datastructures(handshake_register_address);
-    eth_wait_receiver_done(HS_CONTEXT_SWITCH_TIMEOUT);
-    while (eth_txq_is_busy()) {
-        asm volatile("nop");
-    }
-    eth_send_bytes(handshake_register_address, handshake_register_address, 16);
+    std::uint32_t scratch_addr,
+    std::uint32_t handshake_addr,
+    size_t HS_CONTEXT_SWITCH_TIMEOUT = A_LONG_TIMEOUT_BEFORE_CONTEXT_SWITCH) {
+    DPRINT << "Starting handshake at " << handshake_addr << " " << *(volatile tt_l1_ptr uint32_t*)(scratch_addr)
+           << ENDL();
+    internal_::eth_send_packet(0, scratch_addr / 16, handshake_addr / 16, 1);
+    // Remove this
+    // send bytes from your handshake addr to stream reg on peer
+    // send once here
+    // initialize_edm_common_datastructures(handshake_register_address);
+    // eth_wait_receiver_done(HS_CONTEXT_SWITCH_TIMEOUT);
+    // while (eth_txq_is_busy()) {
+    //     asm volatile("nop");
+    // }
+    // eth_send_bytes(handshake_register_address, handshake_register_address, 16);
 }
 
 /*
  * As the designated master EDM core, wait for the acknowledgement from the subordinate EDM core
  */
 FORCE_INLINE void sender_side_finish(
-    std::uint32_t handshake_register_address, size_t HS_CONTEXT_SWITCH_TIMEOUT = A_LONG_TIMEOUT_BEFORE_CONTEXT_SWITCH) {
-    eth_wait_for_receiver_done(HS_CONTEXT_SWITCH_TIMEOUT);
+    std::uint32_t scratch_addr,
+    std::uint32_t handshake_addr,
+    size_t HS_CONTEXT_SWITCH_TIMEOUT = A_LONG_TIMEOUT_BEFORE_CONTEXT_SWITCH) {
+    uint32_t count = 0;
+    DPRINT << "Waiting for handshake ack at " << handshake_addr << ENDL();
+    while (*(volatile tt_l1_ptr uint32_t*)(handshake_addr) != 0xAA) {
+        if (count == HS_CONTEXT_SWITCH_TIMEOUT) {
+            // DPRINT << "Sender Got value: " << *(volatile tt_l1_ptr uint32_t*)(handshake_addr) << " " <<
+            // handshake_addr << ENDL();
+            count = 0;
+            run_routing();  // Uncomment if you want to run routing during handshake
+        } else {
+            internal_::eth_send_packet(0, scratch_addr / 16, handshake_addr / 16, 1);
+            count++;
+        }
+    }
 }
 
 FORCE_INLINE void receiver_side_start(std::uint32_t handshake_register_address) {
-    initialize_edm_common_datastructures(handshake_register_address);
+    // initialize_edm_common_datastructures(handshake_register_address);
 }
 
 /*
@@ -99,12 +127,29 @@ FORCE_INLINE bool receiver_side_can_finish() { return eth_bytes_are_available_on
  * from the master EDM core.
  */
 FORCE_INLINE void receiver_side_finish(
-    std::uint32_t handshake_register_address, size_t HS_CONTEXT_SWITCH_TIMEOUT = A_LONG_TIMEOUT_BEFORE_CONTEXT_SWITCH) {
-    eth_wait_for_bytes(16, HS_CONTEXT_SWITCH_TIMEOUT);
-    while (eth_txq_is_busy()) {
-        asm volatile("nop");
+    std::uint32_t scratch_addr,
+    std::uint32_t handshake_addr,
+    size_t HS_CONTEXT_SWITCH_TIMEOUT = A_LONG_TIMEOUT_BEFORE_CONTEXT_SWITCH) {
+    uint32_t count = 0;
+    DPRINT << "Waiting for handshake ack at " << handshake_addr << ENDL();
+    while (*(volatile tt_l1_ptr uint32_t*)(handshake_addr) != 0xAA) {
+        if (count == HS_CONTEXT_SWITCH_TIMEOUT) {
+            DPRINT << "Recv Got value: " << ((volatile tt_l1_ptr uint32_t*)(handshake_addr))[0] << " "
+                   << ((volatile tt_l1_ptr uint32_t*)(handshake_addr))[1] << " "
+                   << ((volatile tt_l1_ptr uint32_t*)(handshake_addr))[2] << " "
+                   << ((volatile tt_l1_ptr uint32_t*)(handshake_addr))[3] << " " << handshake_addr << ENDL();
+            count = 0;
+            run_routing();  // Uncomment if you want to run routing during handshake
+        } else {
+            count++;
+        }
     }
-    eth_receiver_channel_done(0);
+    internal_::eth_send_packet(0, scratch_addr / 16, handshake_addr / 16, 1);
+    // eth_wait_for_bytes(16, HS_CONTEXT_SWITCH_TIMEOUT);
+    // while (eth_txq_is_busy()) {
+    //     asm volatile("nop");
+    // }
+    // eth_receiver_channel_done(0);
 }
 }  // namespace handshake
 

@@ -283,6 +283,8 @@ struct OutboundReceiverChannelPointers {
     FORCE_INLINE bool has_space_for_packet() const { return num_free_slots; }
 };
 
+// static volatile  __attribute__((aligned(16)));
+
 /*
  * Tracks receiver channel pointers (from receiver side). Must call reset() before using.
  */
@@ -1428,7 +1430,7 @@ void kernel_main() {
     //
     // COMMON CT ARGS (not specific to sender or receiver)
     //
-    *reinterpret_cast<volatile uint32_t*>(handshake_addr) = 0;
+    // *reinterpret_cast<volatile uint32_t*>(handshake_addr) = 0;
     auto eth_transaction_ack_word_addr = handshake_addr + sizeof(eth_channel_sync_t);
 
     // Initialize stream register state for credit management across the Ethernet link.
@@ -1469,12 +1471,33 @@ void kernel_main() {
         init_ptr_val<to_sender_packets_completed_streams[4]>(0);
     }
 
-    if constexpr (enable_ethernet_handshake) {
-        if constexpr (is_handshake_sender) {
-            erisc::datamover::handshake::sender_side_start(handshake_addr, DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT);
-        } else {
-            erisc::datamover::handshake::receiver_side_start(handshake_addr);
+    volatile tt_l1_ptr erisc::datamover::handshake::handshake_state* handshake_struct =
+        reinterpret_cast<volatile tt_l1_ptr erisc::datamover::handshake::handshake_state*>(handshake_addr);
+    handshake_struct->scratch[0] = 0xAA;
+    handshake_struct->local_sync = 0;
+    uint32_t handshake_address = ((uint32_t)(&handshake_struct->local_sync)) / 16;
+    uint32_t scratch_addr = ((uint32_t)(&handshake_struct->scratch)) / 16;
+    uint32_t count = 0;
+    if constexpr (is_handshake_sender) {
+        while (handshake_struct->local_sync != 0xAA) {
+            if (count == DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT) {
+                count = 0;
+                run_routing();
+            } else {
+                count++;
+                internal_::eth_send_packet(0, scratch_addr, handshake_address, 1);
+            }
         }
+    } else {
+        while (handshake_struct->local_sync != 0xAA) {
+            if (count == DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT) {
+                count = 0;
+                run_routing();
+            } else {
+                count++;
+            }
+        }
+        internal_::eth_send_packet(0, scratch_addr, handshake_address, 1);
     }
 
     // TODO: CONVERT TO SEMAPHORE
@@ -1923,11 +1946,15 @@ void kernel_main() {
     }
 
     if constexpr (enable_ethernet_handshake) {
-        if constexpr (is_handshake_sender) {
-            erisc::datamover::handshake::sender_side_finish(handshake_addr, DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT);
-        } else {
-            erisc::datamover::handshake::receiver_side_finish(handshake_addr, DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT);
-        }
+        // if constexpr (is_handshake_sender) {
+        //     DPRINT << "CALLING SENDER FINISH" << ENDL();
+        //     erisc::datamover::handshake::sender_side_finish(scratch_addr, handshake_address,
+        //     DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT); DPRINT << "SENDER FINISH DONE" << ENDL();
+        // } else {
+        //     DPRINT << "CALLING RECEIVER FINISH" << ENDL();
+        //     erisc::datamover::handshake::receiver_side_finish(scratch_addr, handshake_address,
+        //     DEFAULT_HANDSHAKE_CONTEXT_SWITCH_TIMEOUT); DPRINT << "RECEIVER FINISH DONE" << ENDL();
+        // }
 
         *edm_status_ptr = tt::tt_fabric::EDMStatus::REMOTE_HANDSHAKE_COMPLETE;
 
